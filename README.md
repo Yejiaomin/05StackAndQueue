@@ -99,3 +99,76 @@ class Solution {
         return res.toString();
     }
 }
+
+150. 逆波兰表达式求值
+
+根据 逆波兰表示法，求表达式的值。
+
+有效的运算符包括 + ,  - ,  * ,  / 。每个运算对象可以是整数，也可以是另一个逆波兰表达式。
+
+说明：
+
+整数除法只保留整数部分。 给定逆波兰表达式总是有效的。换句话说，表达式总会得出有效数值且不存在除数为 0 的情况。
+
+示例 1：
+
+输入: ["2", "1", "+", "3", " * "]
+输出: 9
+解释: 该算式转化为常见的中缀算术表达式为：((2 + 1) * 3) = 9
+
+解题思路：按顺序进行的运算，可以考虑使用stack， 遇到数据就push，遇到运算符号就pop出来两个数字用于运算，然后再将运算结构push回去。但是要注意-、/是有前后之分的。用后pop的-、/第一个pop出来的。
+
+代码实现：
+class Solution {
+    public int evalRPN(String[] tokens) {
+        Deque<Integer> stack = new LinkedList();
+        for (String s : tokens) {
+            if ("+".equals(s)) {        // leetcode 内置jdk的问题，不能使用==判断字符串是否相等
+                stack.push(stack.pop() + stack.pop());      // 注意 - 和/ 需要特殊处理
+            } else if ("-".equals(s)) {
+                stack.push(-stack.pop() + stack.pop());
+            } else if ("*".equals(s)) {
+                stack.push(stack.pop() * stack.pop());
+            } else if ("/".equals(s)) {
+                int temp1 = stack.pop();
+                int temp2 = stack.pop();
+                stack.push(temp2 / temp1);
+            } else {
+                stack.push(Integer.valueOf(s));
+            }
+        }
+        return stack.pop();
+    }
+}
+
+347.前 K 个高频元素
+
+给定一个非空的整数数组，返回其中出现频率前 k 高的元素。
+
+示例 1:
+
+输入: nums = [1,1,1,2,2,3], k = 2
+输出: [1,2]
+
+解题思路：出现需要根据数组元素统计频率的可以考虑用map，key是num，value是频率。用map.put(key, map.getOrDefault(key,0)+1); 然后需要排序的时候可以考虑用PriorityQueue<>(),默认是升序的，可以用（a,b)->(map.get(b)-map.get(a)).
+
+代码实现：
+class Solution {
+    //解法1：基于大顶堆实现
+    public int[] topKFrequent1(int[] nums, int k) {
+        Map<Integer,Integer> map = new HashMap<>();//key为数组元素值,val为对应出现次数
+        for(int num:nums){
+            map.put(num,map.getOrDefault(num,0)+1);
+        }
+        //在优先队列中存储二元组(num,cnt),cnt表示元素值num在数组中的出现次数
+        //出现次数按从队头到队尾的顺序是从大到小排,出现次数最多的在队头(相当于大顶堆)
+        PriorityQueue<int[]> pq = new PriorityQueue<>((pair1, pair2)->pair2[1]-pair1[1]);
+        for(Map.Entry<Integer,Integer> entry:map.entrySet()){//大顶堆需要对所有元素进行排序
+            pq.add(new int[]{entry.getKey(),entry.getValue()});
+        }
+        int[] ans = new int[k];
+        for(int i=0;i<k;i++){//依次从队头弹出k个,就是出现频率前k高的元素
+            ans[i] = pq.poll()[0];
+        }
+        return ans;
+    }
